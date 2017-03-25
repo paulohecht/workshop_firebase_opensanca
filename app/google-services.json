@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "275273037574",
+    "firebase_url": "https://colecionadoresdeticketsd-5d503.firebaseio.com",
+    "project_id": "colecionadoresdeticketsd-5d503",
+    "storage_bucket": "colecionadoresdeticketsd-5d503.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:275273037574:android:7d9100afbaf68ca2",
+        "android_client_info": {
+          "package_name": "net.thehecht.colecionadoresdeticketsdeshow"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "275273037574-of413664n67ta31qerl9lbge0cet4h0k.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDfpEYhhTNwbyKWF8DJog2bvdpxg13qgjA"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
