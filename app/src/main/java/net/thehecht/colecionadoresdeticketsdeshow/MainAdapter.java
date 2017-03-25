@@ -7,9 +7,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.firebase.database.DataSnapshot;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
@@ -54,9 +56,15 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView textView;
+        ImageView imageView;
         public ViewHolder(View v) {
             super(v);
             textView = (TextView) v.findViewById(R.id.comment);
+            imageView = (ImageView) v.findViewById(R.id.image);
+        }
+        public void reset() {
+            textView.setText("");
+            imageView.setImageResource(R.drawable.placeholder);
         }
     }
 
@@ -68,7 +76,13 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(MainAdapter.ViewHolder holder, int position) {
+        holder.reset();
         holder.textView.setText(dataset.get(position).child("comment").getValue(String.class));
+        Picasso.with(holder.itemView.getContext())
+                .load(dataset.get(position).child("image").getValue(String.class))
+                .placeholder(R.drawable.placeholder)
+                .error(R.drawable.placeholder)
+                .into(holder.imageView);
         Log.d("Recycler", "onBindViewHolder");
     }
 
