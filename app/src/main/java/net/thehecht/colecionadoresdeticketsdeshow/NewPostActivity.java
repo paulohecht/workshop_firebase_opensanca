@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
@@ -14,11 +15,17 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 import com.yalantis.ucrop.UCrop;
 
@@ -52,11 +59,11 @@ public class NewPostActivity extends AppCompatActivity {
             public void onClick(View view) {
                 String comment = ((EditText)findViewById(R.id.comment)).getText().toString();
 
-                DatabaseReference db = FirebaseDatabase.getInstance().getReference();
+                final DatabaseReference db = FirebaseDatabase.getInstance().getReference();
 
-                String postId = db.push().getKey();
+                final String postId = db.push().getKey();
 
-                String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                final String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
                 Map postValues = new HashMap();
                 postValues.put("userId", userId);
@@ -77,7 +84,21 @@ public class NewPostActivity extends AppCompatActivity {
                             //TODO: Deu erro e agora?
                             return;
                         }
-                        finish();
+                        final StorageReference photoRef = FirebaseStorage.getInstance().getReference().child("posts").child(postId + ".jpg");
+                        photoRef.putFile(Uri.fromFile(cropTempFile))
+                        .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                            @Override
+                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                String downloadPath = taskSnapshot.getMetadata().getDownloadUrl().toString();
+                                Map<String, Object> postValues = new HashMap<String, Object>();
+                                postValues.put("image", downloadPath);
+                                postValues.put("updated_at", ServerValue.TIMESTAMP);
+                                db.child("posts").child(postId).updateChildren(postValues);
+                                db.child("user_posts").child(userId).child(postId).updateChildren(postValues);
+                                finish();
+                            }
+                        });
+
                     }
                 });
 
