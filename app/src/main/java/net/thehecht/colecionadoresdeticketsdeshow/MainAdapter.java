@@ -1,6 +1,7 @@
 package net.thehecht.colecionadoresdeticketsdeshow;
 
 
+import android.support.v7.util.SortedList;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -14,7 +15,42 @@ import java.util.ArrayList;
 
 public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
 
-    ArrayList<DataSnapshot> dataset = new ArrayList<DataSnapshot>();
+    SortedList<DataSnapshot> dataset = new SortedList<DataSnapshot>(DataSnapshot.class, new SortedList.Callback<DataSnapshot>() {
+        @Override
+        public int compare(DataSnapshot data1, DataSnapshot data2) {
+            return (int)(data2.child("createdAt").getValue(Long.class) - data1.child("createdAt").getValue(Long.class));
+        }
+
+        @Override
+        public void onChanged(int position, int count) {
+            notifyItemRangeChanged(position, count);
+        }
+
+        @Override
+        public boolean areContentsTheSame(DataSnapshot oldItem, DataSnapshot newItem) {
+            return oldItem.equals(newItem);
+        }
+
+        @Override
+        public boolean areItemsTheSame(DataSnapshot item1, DataSnapshot item2) {
+            return item1.getKey().equals(item2.getKey());
+        }
+
+        @Override
+        public void onInserted(int position, int count) {
+            notifyItemRangeInserted(position, count);
+        }
+
+        @Override
+        public void onRemoved(int position, int count) {
+            notifyItemRangeRemoved(position, count);
+        }
+
+        @Override
+        public void onMoved(int fromPosition, int toPosition) {
+            notifyItemMoved(fromPosition, toPosition);
+        }
+    });
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView textView;

@@ -44,12 +44,14 @@ public class MainActivity extends AppCompatActivity {
             }
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String previousChildKey) {
+                mainAdapter.addItem(dataSnapshot);
             }
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
             }
             @Override
             public void onChildMoved(DataSnapshot dataSnapshot, String previousChildKey) {
+                mainAdapter.addItem(dataSnapshot);
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
