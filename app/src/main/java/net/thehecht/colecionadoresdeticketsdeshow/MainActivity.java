@@ -48,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
             }
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
+                mainAdapter.removeItem(dataSnapshot);
             }
             @Override
             public void onChildMoved(DataSnapshot dataSnapshot, String previousChildKey) {

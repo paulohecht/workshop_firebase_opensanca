@@ -77,6 +77,11 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         notifyDataSetChanged();
     }
 
+    public void removeItem(DataSnapshot data) {
+        dataset.remove(data);
+        notifyDataSetChanged();
+    }
+
     @Override
     public int getItemCount() {
         return dataset.size();
