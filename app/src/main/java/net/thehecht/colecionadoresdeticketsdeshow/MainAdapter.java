@@ -10,7 +10,14 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.MutableData;
+import com.google.firebase.database.Transaction;
+import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -55,16 +62,95 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
     });
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
+
+        DatabaseReference likedRef;
+        ValueEventListener likeValueEventListener;
+
         TextView textView;
         ImageView imageView;
+        ImageView likeImageView;
+        TextView likesCountTextView;
         public ViewHolder(View v) {
             super(v);
             textView = (TextView) v.findViewById(R.id.comment);
             imageView = (ImageView) v.findViewById(R.id.image);
+            likeImageView = (ImageView) v.findViewById(R.id.like);
+            likesCountTextView = (TextView) v.findViewById(R.id.likes_count);
         }
         public void reset() {
+            if (likedRef != null) likedRef.removeEventListener(likeValueEventListener);
             textView.setText("");
             imageView.setImageResource(R.drawable.placeholder);
+            likeImageView.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+            likesCountTextView.setText("");
+        }
+
+        public void render(DataSnapshot dataSnapshot) {
+            textView.setText(dataSnapshot.child("comment").getValue(String.class));
+            Picasso.with(itemView.getContext())
+                    .load(dataSnapshot.child("image").getValue(String.class))
+                    .placeholder(R.drawable.placeholder)
+                    .error(R.drawable.placeholder)
+                    .into(imageView);
+
+            String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+            int likesCount = dataSnapshot.child("likesCount").getValue(Integer.class);
+            if (likesCount > 0) {
+                likesCountTextView.setText("" + likesCount);
+            }
+
+            likedRef = FirebaseDatabase.getInstance().getReference("post_likes/" + userId + "/" + dataSnapshot.getKey());
+            likeValueEventListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(final DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.exists() && dataSnapshot.getValue(Boolean.class)) {
+                        likeImageView.setImageResource(R.drawable.ic_favorite_black_24dp);
+                        likeImageView.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                final DatabaseReference postLikesCountRef = FirebaseDatabase.getInstance().getReference("posts/" + dataSnapshot.getKey() + "/likesCount");
+                                postLikesCountRef.runTransaction(new Transaction.Handler() {
+                                    @Override
+                                    public Transaction.Result doTransaction(MutableData mutableData) {
+                                        likedRef.setValue(false);
+                                        postLikesCountRef.setValue(mutableData.getValue(Integer.class) - 1);
+                                        return null;
+                                    }
+                                    @Override
+                                    public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+                                    }
+                                });
+                            }
+                        });
+
+                    }
+                    else {
+                        likeImageView.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+                        likeImageView.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                final DatabaseReference postLikesCountRef = FirebaseDatabase.getInstance().getReference("posts/" + dataSnapshot.getKey() + "/likesCount");
+                                postLikesCountRef.runTransaction(new Transaction.Handler() {
+                                    @Override
+                                    public Transaction.Result doTransaction(MutableData mutableData) {
+                                        likedRef.setValue(true);
+                                        postLikesCountRef.setValue(mutableData.getValue(Integer.class) + 1);
+                                        return null;
+                                    }
+                                    @Override
+                                    public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+                                    }
+                                });
+                            }
+                        });
+                    }
+                }
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                }
+            };
+            likedRef.addValueEventListener(likeValueEventListener);
         }
     }
 
@@ -77,13 +163,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(MainAdapter.ViewHolder holder, int position) {
         holder.reset();
-        holder.textView.setText(dataset.get(position).child("comment").getValue(String.class));
-        Picasso.with(holder.itemView.getContext())
-                .load(dataset.get(position).child("image").getValue(String.class))
-                .placeholder(R.drawable.placeholder)
-                .error(R.drawable.placeholder)
-                .into(holder.imageView);
-        Log.d("Recycler", "onBindViewHolder");
+        holder.render(dataset.get(position));
     }
 
     public void addItem(DataSnapshot data) {

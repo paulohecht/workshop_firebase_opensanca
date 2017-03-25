@@ -85,6 +85,7 @@ public class NewPostActivity extends AppCompatActivity {
                             return;
                         }
                         final StorageReference photoRef = FirebaseStorage.getInstance().getReference().child("posts").child(postId + ".jpg");
+
                         photoRef.putFile(Uri.fromFile(cropTempFile))
                         .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                             @Override
